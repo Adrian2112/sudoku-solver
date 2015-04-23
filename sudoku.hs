@@ -12,12 +12,6 @@ let example = [[0,0,0, 2,0,5, 0,0,0],
 
 let emptySudoku = [[ 0 | _ <- [1..9]  ] | _ <- [1..9]]
 
-let sudokuWithPointElements :: (Num a, Eq a) => [((a,a), a)] -> [[a]]
-    sudokuWithPointElements pointElements =
-      foldr (\(p,e) sudoku -> replaceElementInMatrix p e sudoku)
-          emptySudoku
-          pointElements
-
 let replaceElementInList :: (Num a, Eq a) => a -> b -> [b] -> [b]
     replaceElementInList 0 e (x:xs) = e : xs
     replaceElementInList idx e (x:xs) = x : replaceElementInList (idx-1) e xs
@@ -26,9 +20,19 @@ let replaceElementInMatrix :: (Num a, Eq a) => (a,a) -> b -> [[b]] -> [[b]]
     replaceElementInMatrix (0,c) e (x:xs) = (replaceElementInList c e x) : xs
     replaceElementInMatrix (r,c) e (x:xs) = x : replaceElementInMatrix ((r-1),c) e xs
 
+let sudokuWithPointElements :: (Num a, Eq a) => [((a,a), a)] -> [[a]]
+    sudokuWithPointElements pointElements =
+      foldr (\(p,e) sudoku -> replaceElementInMatrix p e sudoku)
+          emptySudoku
+          pointElements
+
 sudokuWithPointElements [((x,x), 9) | x <- [0..8]]
 
-let isLineSolved line = L.sort line == [1..9]
+let isLineSolved line = L.sort line == [1,2,3,4,5,6,7,8,9]
+
+let listInChunks n [] = []
+    listInChunks n list = first : listInChunks n rest
+      where (first, rest) = splitAt n list
 
 let sudokuRows sudoku = sudoku
     sudokuColumns sudoku = L.transpose sudoku
@@ -38,7 +42,8 @@ let sudokuRows sudoku = sudoku
 
 let sudokuSectionForPoint (r,c) =  (div r 3, div c 3)
 
-let isSudokuSolved sudoku = all isLineSolved  (rows ++ columns ++ sections)
+let isSudokuSolved :: (Num a, Eq a, Ord a) => [[a]] -> Bool
+    isSudokuSolved sudoku = all isLineSolved  (rows ++ columns ++ sections)
       where rows = sudokuRows sudoku
             columns = sudokuColumns sudoku
             sections = foldr1 (++) $ sudokuSections sudoku
@@ -62,11 +67,6 @@ let availableNumbersForSudokuInPoint :: (Num b, Eq b) => (Int, Int) -> [[b]] -> 
             section = sudokuSectionForPoint p
             sectionNumbers (sr, sc) = sudokuSections sudoku !! sr !! sc
             possibleNumbers = [1,2,3,4,5,6,7,8,9]
-
-let listInChunks n [] = []
-    listInChunks n list = first : listInChunks n rest
-      where (first, rest) = splitAt n list
-
 
 let solveSudoku :: (Num b, Ord b) => [[b]] -> [[[b]]]
     solveSudoku sudoku
